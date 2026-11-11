@@ -32,6 +32,25 @@
       {% if own_entry %}<span class="revision">当前第 {{ own_entry.revision }} 版</span>{% endif %}
     </div>
 
+    {% if conflict and own_entry %}
+      <div class="stale-error" role="alert">
+        <strong>旧页提交已拒绝 · 未写入、未升版、未撤销裁定</strong>
+        <p>这个页面打开之后，你已在另一处保存过更新的版本。为避免旧草稿覆盖最新录入，本次保存没有生效，你刚填写的草稿仍保留在下方表单中。</p>
+        <div class="latest-values">
+          <span>你本人最新的已存值（第 {{ own_entry.revision }} 版 · {{ own_entry.updated_at|short_dt }}）：</span>
+          <b>站号 {{ own_entry.station_no }}</b>
+          <b>观测日 {{ own_entry.obs_date }}</b>
+          <b>雨量 {{ own_entry.rainfall_mm }} mm</b>
+        </div>
+        <p>请对照扫描原图核对下方草稿与最新已存值；确认无误后点击“确认保存”。若你确认前最新版本又被改过，保存时会再次提示冲突。</p>
+      </div>
+    {% elif conflict %}
+      <div class="stale-error" role="alert">
+        <strong>旧页提交已拒绝</strong>
+        <p>这个页面打开之后，你已在另一处完成了首次录入，本次保存没有生效。请重新打开卡片后再改填。</p>
+      </div>
+    {% endif %}
+
     {% if info.status == 'agreed' %}
       <div class="inline-notice success">当前两份录入一致，已自动核定。若你改填，核定将失效并重新核对。</div>
     {% elif info.status == 'adjudicated' %}
@@ -43,6 +62,9 @@
     {% endif %}
 
     <form method="post" class="form-stack entry-form">
+      {# 版本令牌：绑定本页打开时所见的本人录入版本，用于拒绝旧标签页的过期提交。 #}
+      <input type="hidden" name="expected_entry_id" value="{{ expected_entry_id }}">
+      <input type="hidden" name="expected_entry_revision" value="{{ expected_entry_revision }}">
       <label class="field {% if errors.station_no %}field-error{% endif %}">
         <span>站号 <em>必填</em></span>
         <input type="text" name="station_no" value="{{ values.station_no }}" maxlength="40" autocomplete="off" required>
@@ -65,13 +87,17 @@
       </label>
 
       <button type="submit" class="button button-primary button-wide">
-        {{ '保存新版本并重新核对' if own_entry else '保存我的录入' }}
+        {% if conflict and own_entry %}
+          核对无误，确认保存
+        {% else %}
+          {{ '保存新版本并重新核对' if own_entry else '保存我的录入' }}
+        {% endif %}
       </button>
     </form>
 
     <div class="notice subtle-notice">
       <strong>保存即生成新版本</strong>
-      <p>即便数值没有变化，再次保存也会让之前的复核裁定失效，需要重新核对。</p>
+      <p>即便数值没有变化，再次保存也会让之前的复核裁定失效，需要重新核对。若你在多个标签页打开同一张卡，较早页面的过期提交会被拒绝，草稿会保留并提示你核对本人最新已存值。</p>
     </div>
   </section>
 </div>

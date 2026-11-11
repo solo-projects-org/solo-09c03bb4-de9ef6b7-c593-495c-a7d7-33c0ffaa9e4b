@@ -508,13 +508,65 @@ def register_routes(app: Flask) -> None:
         if g.user["id"] not in (card["clerk_a_id"], card["clerk_b_id"]):
             abort(403)
 
-        own_entry = get_entry(db, card_id, g.user["id"])
-        values = {
-            "station_no": own_entry["station_no"] if own_entry else "",
-            "obs_date": own_entry["obs_date"] if own_entry else "",
-            "rainfall_mm": own_entry["rainfall_mm"] if own_entry else "",
-        }
+        # The optimistic-concurrency token carried by the form. It identifies
+        # the exact version of the clerk's own entry that was on screen when
+        # the page was rendered. A blank token means the page was opened while
+        # the clerk had no entry yet.
+        expected_entry_id = (request.form.get("expected_entry_id") or "").strip()
+        expected_entry_revision = (
+            request.form.get("expected_entry_revision") or ""
+        ).strip()
+        conflict = False
         errors: dict[str, str] = {}
+
+        def render_page(http_status: int = 200):
+            entry_a, entry_b = get_card_entries(db, card)
+            latest_own = entry_a if card["clerk_a_id"] == g.user["id"] else entry_b
+            page_values = {
+                "station_no": latest_own["station_no"] if latest_own else "",
+                "obs_date": latest_own["obs_date"] if latest_own else "",
+                "rainfall_mm": latest_own["rainfall_mm"] if latest_own else "",
+            }
+            # On a validation error or a rejected stale save, keep the draft the
+            # clerk just typed (passed in as `values`) instead of overwriting it
+            # with the stored values.
+            if request.method == "POST":
+                page_values = values
+
+            latest_id = str(latest_own["id"]) if latest_own else ""
+            latest_revision = str(latest_own["revision"]) if latest_own else ""
+            if conflict:
+                # A rejected stale page is rebound to the newest stored
+                # version, so the clerk can confirm after checking it.
+                token_id, token_revision = latest_id, latest_revision
+            elif request.method == "POST":
+                # A field-validation error rewrites nothing: the form keeps the
+                # token originally submitted, so a corrected retry is still
+                # judged against the version the clerk first saw.
+                token_id, token_revision = (
+                    expected_entry_id,
+                    expected_entry_revision,
+                )
+            else:
+                token_id, token_revision = latest_id, latest_revision
+
+            info = resolve_card(
+                entry_a, entry_b, get_active_decision(db, card_id)
+            )
+            return (
+                render_template(
+                    "entry_form.html",
+                    card=card,
+                    own_entry=latest_own,
+                    info=info,
+                    values=page_values,
+                    errors=errors,
+                    conflict=conflict,
+                    expected_entry_id=token_id,
+                    expected_entry_revision=token_revision,
+                ),
+                http_status,
+            )
 
         if request.method == "POST":
             data, values, errors = parse_entry_form(request.form)
@@ -524,6 +576,26 @@ def register_routes(app: Flask) -> None:
                 try:
                     # Re-read under the write lock so an update is never lost.
                     current_own = get_entry(db, card_id, g.user["id"])
+
+                    # Stale-page guard. The token must match the version this
+                    # form was opened against. Only this clerk's own entry is
+                    # compared; the other clerk's saves never conflict here.
+                    if current_own is None:
+                        token_is_current = expected_entry_id == ""
+                    else:
+                        token_is_current = (
+                            expected_entry_id == str(current_own["id"])
+                            and expected_entry_revision
+                            == str(current_own["revision"])
+                        )
+
+                    if not token_is_current:
+                        # Reject the old draft: nothing is written, no new
+                        # version is created and no adjudication is voided.
+                        db.rollback()
+                        conflict = True
+                        return render_page(http_status=409)
+
                     if current_own is None:
                         cur = db.execute(
                             """INSERT INTO entries
@@ -561,7 +633,8 @@ def register_routes(app: Flask) -> None:
                     void_active_decisions(db, card_id, now, entry_id)
                     db.commit()
                 except Exception:
-                    db.rollback()
+                    if db.in_transaction:
+                        db.rollback()
                     raise
 
                 entry_a, entry_b = get_card_entries(db, card)
@@ -576,17 +649,7 @@ def register_routes(app: Flask) -> None:
                     flash("录入已保存，等待另一位录入员。", "success")
                 return redirect(url_for("clerk_entry", card_id=card_id))
 
-        entry_a, entry_b = get_card_entries(db, card)
-        own_entry = entry_a if card["clerk_a_id"] == g.user["id"] else entry_b
-        info = resolve_card(entry_a, entry_b, get_active_decision(db, card_id))
-        return render_template(
-            "entry_form.html",
-            card=card,
-            own_entry=own_entry,
-            info=info,
-            values=values,
-            errors=errors,
-        )
+        return render_page()
 
     @app.get("/reviewer")
     @role_required("reviewer")
