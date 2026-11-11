@@ -1,0 +1,30 @@
+name: rainfall-archive
+
+services:
+  web:
+    build: .
+    image: rainfall-archive:local
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      SECRET_KEY: "${SECRET_KEY:-demo-secret-change-before-real-use}"
+      DATABASE_PATH: "/app/data/rainfall.db"
+      UPLOAD_DIR: "/app/data/uploads"
+      SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:-0}"
+    volumes:
+      - archive-data:/app/data
+    restart: unless-stopped
+    init: true
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/login', timeout=4).read()"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  archive-data:

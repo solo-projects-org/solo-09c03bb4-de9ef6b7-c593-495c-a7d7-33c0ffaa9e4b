@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}登录 · 历史雨量档案{% endblock %}
+{% block content %}
+<section class="login-shell">
+  <div class="login-intro">
+    <p class="eyebrow">HYDROLOGICAL ARCHIVE</p>
+    <h1>把纸质雨量卡，稳稳落进历史观测库。</h1>
+    <p class="lead">两名录入员独立填写同一张卡片。两份一致自动核定；有出入时，由复核员对照扫描原图选定。任一份改填后，旧裁定立即失效。</p>
+    <div class="process">
+      <span>01 上传原图</span>
+      <span>02 双人录入</span>
+      <span>03 对照复核</span>
+      <span>04 核定入库</span>
+    </div>
+  </div>
+
+  <div class="login-panel">
+    <div class="card-panel">
+      <h2>登录工作台</h2>
+      <form method="post" class="form-stack">
+        <label class="field">
+          <span>账号</span>
+          <input type="text" name="username" autocomplete="username" required autofocus>
+        </label>
+        <label class="field">
+          <span>密码</span>
+          <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <button type="submit" class="button button-primary button-wide">进入档案系统</button>
+      </form>
+    </div>
+
+    <div class="demo-panel">
+      <div class="section-heading tight">
+        <h3>演示账号</h3>
+        <p>统一密码 <code>demo1234</code></p>
+      </div>
+      <div class="demo-accounts">
+        {% for username, display_name, role in demo_accounts %}
+          <div class="demo-account">
+            <span class="avatar">{{ display_name[-1] }}</span>
+            <span>
+              <strong>{{ display_name }}</strong>
+              <small>{{ '录入员' if role == 'clerk' else '复核员' }} · {{ username }}</small>
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+      <p class="hint">建议开两个浏览器（或一个无痕窗口），分别登录录入员甲、乙，即可体验完整的双录流程。</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

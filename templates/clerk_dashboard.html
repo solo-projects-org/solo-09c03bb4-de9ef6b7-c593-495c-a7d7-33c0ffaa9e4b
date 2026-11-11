@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}我的录入 · 历史雨量档案{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">ENTRY DESK</p>
+    <h1>我的录入卡片</h1>
+    <p class="lead">这里只显示分配给你的卡片和你的本人录入。你只能查看、改填自己的版本。</p>
+  </div>
+  <div class="heading-note">
+    <strong>{{ card_rows|length }}</strong>
+    <span>张分配卡片</span>
+  </div>
+</div>
+
+{% if card_rows %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>原图</th>
+          <th>卡片编号</th>
+          <th>我的录入</th>
+          <th>当前状态</th>
+          <th>版本</th>
+          <th class="align-right">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in card_rows %}
+          <tr>
+            <td>
+              <a href="{{ url_for('clerk_entry', card_id=row.card.id) }}" class="thumb-link">
+                <img class="thumb" src="{{ url_for('card_image', card_id=row.card.id) }}" alt="卡片 {{ row.card.card_no }} 扫描图">
+              </a>
+            </td>
+            <td>
+              <div class="primary-cell">{{ row.card.card_no }}</div>
+              <div class="subtle">上传于 {{ row.card.created_at|short_dt }}</div>
+            </td>
+            <td>
+              {% if row.own_entry %}
+                <div class="mini-values">
+                  <span>站号 <b>{{ row.own_entry.station_no }}</b></span>
+                  <span>观测日 <b>{{ row.own_entry.obs_date }}</b></span>
+                  <span>雨量 <b>{{ row.own_entry.rainfall_mm }} mm</b></span>
+                </div>
+              {% else %}
+                <span class="empty-inline">尚未录入</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="status status-{{ row.info.status }}">{{ status_labels[row.info.status] }}</span>
+              {% if row.info.status == 'conflict' %}
+                <div class="subtle">两份有出入，等待复核员对照原图</div>
+              {% elif row.info.status == 'pending' and row.own_entry %}
+                <div class="subtle">你已提交，等待另一位录入员</div>
+              {% endif %}
+            </td>
+            <td>
+              {% if row.own_entry %}
+                <span class="revision">第 {{ row.own_entry.revision }} 版</span>
+                <div class="subtle">{{ row.own_entry.updated_at|short_dt }}</div>
+              {% else %}
+                <span class="subtle">—</span>
+              {% endif %}
+            </td>
+            <td class="align-right">
+              <a class="button button-small" href="{{ url_for('clerk_entry', card_id=row.card.id) }}">
+                {{ '改填我的录入' if row.own_entry else '开始录入' }}
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty-state">
+    <h2>暂未分配卡片</h2>
+    <p>请等复核员上传扫描图并分配双录任务。</p>
+  </div>
+{% endif %}
+
+<div class="notice">
+  <strong>改填规则</strong>
+  <p>每次保存都会生成新的版本。若卡片已经核定，任一录入员改填后，原核定（包括复核员的裁定）立即失效，系统会按最新两份重新核对。</p>
+</div>
+{% endblock %}

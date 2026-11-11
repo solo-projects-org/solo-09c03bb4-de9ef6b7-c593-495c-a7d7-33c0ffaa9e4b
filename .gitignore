@@ -1,0 +1,16 @@
+# Local runtime state
+data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+uploads/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local configuration
+.env

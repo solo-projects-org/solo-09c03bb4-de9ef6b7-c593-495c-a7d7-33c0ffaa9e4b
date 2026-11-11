@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}复核工作台 · 历史雨量档案{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">REVIEW DESK</p>
+    <h1>复核工作台</h1>
+    <p class="lead">上传纸质卡片扫描图，分配两位录入员；对照原图核对两份独立录入，再核定或改判。</p>
+  </div>
+  <a class="button button-primary" href="{{ url_for('export_csv') }}">下载当前核定 CSV</a>
+</div>
+
+<section class="upload-section">
+  <div class="section-heading">
+    <h2>新建卡片与双录任务</h2>
+    <p>扫描图支持 PNG、JPEG、GIF、WebP，单张不超过 16 MB。</p>
+  </div>
+  <form method="post" action="{{ url_for('upload_card') }}" enctype="multipart/form-data" class="upload-form">
+    <label class="field">
+      <span>卡片编号 <em>可留空自动生成</em></span>
+      <input type="text" name="card_no" maxlength="60" placeholder="例如 YC-1986-0718" autocomplete="off">
+    </label>
+    <label class="field field-file">
+      <span>扫描原图 <em>必填</em></span>
+      <input type="file" name="scan" accept="image/png,image/jpeg,image/gif,image/webp" required>
+    </label>
+    <label class="field">
+      <span>录入员甲</span>
+      <select name="clerk_a_id" required>
+        {% for clerk in clerks %}
+          <option value="{{ clerk.id }}" {% if loop.index == 1 %}selected{% endif %}>{{ clerk.display_name }}（{{ clerk.username }}）</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>录入员乙</span>
+      <select name="clerk_b_id" required>
+        {% for clerk in clerks %}
+          <option value="{{ clerk.id }}" {% if loop.index == 2 %}selected{% endif %}>{{ clerk.display_name }}（{{ clerk.username }}）</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit" class="button button-primary">建立双录任务</button>
+  </form>
+</section>
+
+<section class="filter-row" aria-label="按状态筛选">
+  <a class="filter-chip {% if not selected_status %}active{% endif %}" href="{{ url_for('reviewer_dashboard') }}">全部 <span>{{ counts.values()|sum }}</span></a>
+  {% for key, label in status_labels.items() %}
+    <a class="filter-chip status-chip status-{{ key }} {% if selected_status == key %}active{% endif %}" href="{{ url_for('reviewer_dashboard', status=key) }}">{{ label }} <span>{{ counts[key] }}</span></a>
+  {% endfor %}
+</section>
+
+{% if card_rows %}
+  <div class="table-wrap">
+    <table class="data-table review-table">
+      <thead>
+        <tr>
+          <th>卡片</th>
+          <th>两位录入员</th>
+          <th>甲版内容</th>
+          <th>乙版内容</th>
+          <th>状态</th>
+          <th class="align-right">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in card_rows %}
+          <tr>
+            <td>
+              <div class="table-card-cell">
+                <a href="{{ url_for('reviewer_card', card_id=row.card.id) }}" class="thumb-link">
+                  <img class="thumb" src="{{ url_for('card_image', card_id=row.card.id) }}" alt="卡片 {{ row.card.card_no }} 扫描图">
+                </a>
+                <span>
+                  <span class="primary-cell">{{ row.card.card_no }}</span>
+                  <small class="subtle">{{ row.card.created_at|short_dt }}</small>
+                </span>
+              </div>
+            </td>
+            <td>
+              <span class="clerk-name">{{ row.card.clerk_a_name }}</span>
+              <span class="clerk-name">{{ row.card.clerk_b_name }}</span>
+            </td>
+            <td>
+              {% if row.entry_a %}
+                <div class="mini-values">
+                  <span>{{ row.entry_a.station_no }}</span>
+                  <span>{{ row.entry_a.obs_date }}</span>
+                  <span><b>{{ row.entry_a.rainfall_mm }}</b> mm</span>
+                </div>
+                <div class="subtle">第 {{ row.entry_a.revision }} 版</div>
+              {% else %}
+                <span class="empty-inline">尚未录入</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if row.entry_b %}
+                <div class="mini-values">
+                  <span>{{ row.entry_b.station_no }}</span>
+                  <span>{{ row.entry_b.obs_date }}</span>
+                  <span><b>{{ row.entry_b.rainfall_mm }}</b> mm</span>
+                </div>
+                <div class="subtle">第 {{ row.entry_b.revision }} 版</div>
+              {% else %}
+                <span class="empty-inline">尚未录入</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="status status-{{ row.info.status }}">{{ status_labels[row.info.status] }}</span>
+            </td>
+            <td class="align-right">
+              <a class="button button-small {% if row.info.status == 'conflict' %}button-attention{% endif %}" href="{{ url_for('reviewer_card', card_id=row.card.id) }}">
+                {{ '对照复核' if row.info.status == 'conflict' else '查看' }}
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty-state">
+    <h2>没有符合条件的卡片</h2>
+    <p>换一个状态筛选，或先上传一张扫描图。</p>
+  </div>
+{% endif %}
+
+<div class="notice">
+  <strong>核定口径</strong>
+  <p>两份最新录入完全一致时自动核定；不一致时必须由复核员对照原图选一份。任何一份改填都会立刻撤销旧裁定，旧页面提交的裁定会被拒绝。</p>
+</div>
+{% endblock %}

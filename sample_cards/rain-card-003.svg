@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 660" role="img" aria-label="日雨量样卡 003">
+  <defs>
+    <radialGradient id="stain3" cx="86%" cy="74%" r="34%">
+      <stop offset="0%" stop-color="#b9a575" stop-opacity="0.17"/>
+      <stop offset="100%" stop-color="#b9a575" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="lines3" width="1000" height="26" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="25" x2="1000" y2="25" stroke="#c9c1ab" stroke-width="0.6" opacity="0.35"/>
+    </pattern>
+  </defs>
+  <rect width="1000" height="660" fill="#e9e4d5"/>
+  <rect x="27" y="24" width="946" height="612" fill="#faf6e9" stroke="#b8ae98" stroke-width="1.2"/>
+  <rect x="27" y="24" width="946" height="612" fill="url(#stain3)"/>
+  <rect x="72" y="102" width="856" height="442" fill="url(#lines3)" opacity="0.5"/>
+  <circle cx="890" cy="166" r="58" fill="none" stroke="#ad3a2e" stroke-width="2.3" opacity="0.5"/>
+  <circle cx="890" cy="166" r="51" fill="none" stroke="#ad3a2e" stroke-width="0.8" opacity="0.38"/>
+  <text x="890" y="157" text-anchor="middle" fill="#ad3a2e" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="19" opacity="0.7">水 文</text>
+  <text x="890" y="184" text-anchor="middle" fill="#ad3a2e" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="19" opacity="0.7">档 案</text>
+  <text x="64" y="70" fill="#334a3f" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="29" font-weight="700">日 雨 量 观 测 记 录 卡</text>
+  <text x="64" y="92" fill="#7b715f" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="11" letter-spacing="3">DAILY PRECIPITATION OBSERVATION CARD</text>
+  <text x="936" y="64" text-anchor="end" fill="#6e6554" font-family="'Courier New',monospace" font-size="13">档案号 YC-1986-0716</text>
+  <text x="936" y="82" text-anchor="end" fill="#8c816c" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="10">样卡 · 仅供演示</text>
+  <line x1="64" y1="102" x2="936" y2="102" stroke="#334a3f" stroke-width="1.7"/>
+  <line x1="64" y1="105" x2="936" y2="105" stroke="#334a3f" stroke-width="0.5"/>
+
+  <text x="88" y="148" fill="#5f5749" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="15">站 号</text>
+  <text x="170" y="150" fill="#253b33" font-family="'Courier New',monospace" font-size="26" font-weight="700">30501220</text>
+  <line x1="168" y1="159" x2="360" y2="159" stroke="#7d715e" stroke-width="0.8"/>
+  <text x="430" y="148" fill="#5f5749" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="15">观测日</text>
+  <text x="505" y="150" fill="#253b33" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="24">1986 年 7 月 16 日</text>
+  <line x1="503" y1="159" x2="770" y2="159" stroke="#7d715e" stroke-width="0.8"/>
+
+  <text x="88" y="216" fill="#5f5749" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="15">降 雨 量</text>
+  <text x="88" y="239" fill="#8b806d" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="10">PRECIPITATION / mm</text>
+  <text x="320" y="274" fill="#243a32" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="72" font-weight="700" transform="rotate(-1 320 274)">0.0</text>
+  <line x1="303" y1="284" x2="435" y2="284" stroke="#4d5d52" stroke-width="1.1"/>
+  <text x="453" y="272" fill="#5f5749" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="24">毫米</text>
+  <text x="610" y="216" fill="#5f5749" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="15">天气 / 备注</text>
+  <text x="610" y="245" fill="#4d5d52" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="18" transform="rotate(-1 610 245)">晴，无降水</text>
+  <line x1="608" y1="254" x2="914" y2="254" stroke="#7d715e" stroke-width="0.8"/>
+
+  <line x1="64" y1="330" x2="936" y2="330" stroke="#b5aa93" stroke-width="0.8"/>
+  <text x="88" y="368" fill="#5f5749" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="14">观测方法</text>
+  <text x="190" y="368" fill="#4d5d52" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="16">雨量器（口径 20 cm）</text>
+  <text x="430" y="368" fill="#5f5749" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="14">观测时段</text>
+  <text x="525" y="368" fill="#4d5d52" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="16">08 时 — 08 时（24 h）</text>
+  <text x="88" y="403" fill="#5f5749" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="14">原始记录</text>
+  <text x="190" y="403" fill="#4d5d52" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="16">量杯无读数，记 0.0 mm</text>
+  <text x="88" y="438" fill="#5f5749" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="14">观测员</text>
+  <text x="190" y="438" fill="#4d5d52" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="17" transform="rotate(-1 190 438)">周立群</text>
+  <line x1="188" y1="446" x2="295" y2="446" stroke="#7d715e" stroke-width="0.8"/>
+  <text x="430" y="438" fill="#5f5749" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="14">校核员</text>
+  <text x="525" y="438" fill="#4d5d52" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="17" transform="rotate(-1 525 438)">陈明远</text>
+  <line x1="523" y1="446" x2="630" y2="446" stroke="#7d715e" stroke-width="0.8"/>
+
+  <line x1="64" y1="500" x2="936" y2="500" stroke="#b5aa93" stroke-width="0.8"/>
+  <text x="64" y="530" fill="#857a66" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif" font-size="11">归档说明</text>
+  <text x="64" y="552" fill="#5f5749" font-family="'Noto Serif SC','Songti SC','SimSun',serif" font-size="13">本卡由水文站原始观测簿转录，扫描件用于历史观测库双录比对。</text>
+  <text x="64" y="612" fill="#9b9078" font-family="'Courier New',monospace" font-size="10">SAMPLE CARD 003 · ARCHIVE REPLICA · NOT A REAL OBSERVATION</text>
+  <path d="M745 571 q34 -8 55 4 q-24 11 -55 -4z" fill="#cabf9f" opacity="0.25"/>
+</svg>

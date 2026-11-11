@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}复核 {{ card.card_no }} · 历史雨量档案{% endblock %}
+{% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('reviewer_dashboard') }}">← 返回复核工作台</a>
+</div>
+
+{% if decision_error %}
+  <div class="decision-error" role="alert">
+    <strong>裁定未接受</strong>
+    <span>{{ decision_error }}</span>
+  </div>
+{% endif %}
+
+<div class="page-heading compact">
+  <div>
+    <p class="eyebrow">CARD REVIEW</p>
+    <h1>{{ card.card_no }}</h1>
+    <p class="lead">{{ card.clerk_a_name }} 与 {{ card.clerk_b_name }} 独立录入 · 上传于 {{ card.created_at|short_dt }}</p>
+  </div>
+  <span class="status status-{{ info.status }}">{{ status_labels[info.status] }}</span>
+</div>
+
+{% if info.status == 'agreed' %}
+  <div class="inline-notice success">
+    <strong>两份录入完全一致，已自动核定。</strong>
+    当前站号 {{ info.values[0] }}、观测日 {{ info.values[1] }}、雨量 {{ info.values[2] }} mm。无需复核员裁定。
+  </div>
+{% elif info.status == 'adjudicated' %}
+  <div class="inline-notice success">
+    <strong>已由复核员对照原图核定。</strong>
+    当前入库值：站号 {{ info.values[0] }}、观测日 {{ info.values[1] }}、雨量 {{ info.values[2] }} mm。
+    若任一录入员改填，此裁定会自动失效。
+  </div>
+{% elif info.status == 'pending' %}
+  <div class="inline-notice warning">
+    <strong>还缺一份录入。</strong>
+    两位录入员都提交后，系统才会自动比对；不一致时才能进行复核裁定。
+  </div>
+{% elif info.status == 'conflict' %}
+  <div class="inline-notice warning">
+    <strong>两份录入有出入，需要对照原图选取一份。</strong>
+    请逐项核对下方差异字段，选择与扫描原图一致的那份录入。
+  </div>
+{% endif %}
+
+<div class="split-layout review-layout">
+  <section class="scan-panel sticky-scan">
+    <div class="panel-heading">
+      <h2>扫描原图</h2>
+      <a class="text-link" href="{{ url_for('card_image', card_id=card.id) }}" target="_blank" rel="noopener">查看大图 ↗</a>
+    </div>
+    <div class="scan-frame">
+      <img src="{{ url_for('card_image', card_id=card.id) }}" alt="卡片 {{ card.card_no }} 的扫描原图">
+    </div>
+  </section>
+
+  <section class="form-panel review-panel">
+    <div class="panel-heading">
+      <h2>两份独立录入</h2>
+      <span class="subtle">红色标出不一致字段</span>
+    </div>
+
+    {% if entry_a and entry_b %}
+      {% set can_decide = info.status == 'conflict' and active is none %}
+      {% if can_decide %}
+        <form method="post" action="{{ url_for('decide_card', card_id=card.id) }}" class="decision-form">
+          <input type="hidden" name="entry_a_id" value="{{ entry_a.id }}">
+          <input type="hidden" name="entry_a_revision" value="{{ entry_a.revision }}">
+          <input type="hidden" name="entry_b_id" value="{{ entry_b.id }}">
+          <input type="hidden" name="entry_b_revision" value="{{ entry_b.revision }}">
+      {% endif %}
+
+      <div class="table-wrap comparison-wrap">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              {% if can_decide %}<th class="choice-col">选取</th>{% endif %}
+              <th>录入</th>
+              <th>站号</th>
+              <th>观测日</th>
+              <th>雨量</th>
+              <th>版本</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              {% if can_decide %}
+                <td class="choice-col">
+                  <label class="radio-hit">
+                    <input type="radio" name="selected_entry_id" value="{{ entry_a.id }}" required>
+                    <span>选甲</span>
+                  </label>
+                </td>
+              {% endif %}
+              <td>
+                <strong>{{ card.clerk_a_name }}</strong>
+                <div class="subtle">甲版 · {{ entry_a.updated_at|short_dt }}</div>
+              </td>
+              <td class="{% if 'station_no' in differences %}field-diff{% endif %}">{{ entry_a.station_no }}</td>
+              <td class="{% if 'obs_date' in differences %}field-diff{% endif %}">{{ entry_a.obs_date }}</td>
+              <td class="{% if 'rainfall_mm' in differences %}field-diff{% endif %}"><strong>{{ entry_a.rainfall_mm }}</strong> mm</td>
+              <td><span class="revision">第 {{ entry_a.revision }} 版</span></td>
+            </tr>
+            <tr>
+              {% if can_decide %}
+                <td class="choice-col">
+                  <label class="radio-hit">
+                    <input type="radio" name="selected_entry_id" value="{{ entry_b.id }}" required>
+                    <span>选乙</span>
+                  </label>
+                </td>
+              {% endif %}
+              <td>
+                <strong>{{ card.clerk_b_name }}</strong>
+                <div class="subtle">乙版 · {{ entry_b.updated_at|short_dt }}</div>
+              </td>
+              <td class="{% if 'station_no' in differences %}field-diff{% endif %}">{{ entry_b.station_no }}</td>
+              <td class="{% if 'obs_date' in differences %}field-diff{% endif %}">{{ entry_b.obs_date }}</td>
+              <td class="{% if 'rainfall_mm' in differences %}field-diff{% endif %}"><strong>{{ entry_b.rainfall_mm }}</strong> mm</td>
+              <td><span class="revision">第 {{ entry_b.revision }} 版</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {% if can_decide %}
+          <div class="decision-action">
+            <div>
+              <strong>以扫描原图为准</strong>
+              <p>提交时系统会再次校验两份录入的版本。若期间有任何改填，旧页面上的裁定将被拒绝。</p>
+            </div>
+            <button type="submit" class="button button-attention">核定所选录入</button>
+          </div>
+        </form>
+      {% elif info.status == 'conflict' %}
+        <div class="inline-notice warning">当前存在无法匹配的旧版本裁定，请刷新后重新核对。</div>
+      {% endif %}
+    {% else %}
+      <div class="missing-entries">
+        <div class="missing-entry-card {% if entry_a %}filled{% endif %}">
+          <span class="avatar">{{ card.clerk_a_name[-1] }}</span>
+          <strong>{{ card.clerk_a_name }}</strong>
+          <small>{{ '已提交第 ' ~ entry_a.revision ~ ' 版' if entry_a else '尚未录入' }}</small>
+        </div>
+        <div class="missing-entry-card {% if entry_b %}filled{% endif %}">
+          <span class="avatar">{{ card.clerk_b_name[-1] }}</span>
+          <strong>{{ card.clerk_b_name }}</strong>
+          <small>{{ '已提交第 ' ~ entry_b.revision ~ ' 版' if entry_b else '尚未录入' }}</small>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if active and info.status == 'adjudicated' %}
+      <div class="decision-summary">
+        <div>
+          <span class="eyebrow">ACTIVE DECISION</span>
+          <h3>当前有效裁定</h3>
+        </div>
+        <div class="decision-facts">
+          <span>复核员 <b>{{ history[0].reviewer_name if history else '—' }}</b></span>
+          <span>裁定时间 <b>{{ active.created_at|short_dt }}</b></span>
+          <span>选取版本 <b>{{ history[0].selected_clerk_name if history else '—' }}</b></span>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+</div>
+
+{% if history %}
+  <section class="history-section">
+    <div class="section-heading">
+      <h2>裁定记录</h2>
+      <p>所有裁定永久留存；录入员改填后，原裁定标记为失效，不会重新生效。</p>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table history-table">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>复核员</th>
+            <th>选取录入</th>
+            <th>核定值</th>
+            <th>基于版本</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for decision in history %}
+            <tr class="{% if decision.voided_at %}voided-row{% endif %}">
+              <td>{{ decision.created_at|short_dt }}</td>
+              <td>{{ decision.reviewer_name }}</td>
+              <td>{{ decision.selected_clerk_name or '—' }}</td>
+              <td>{{ decision.verified_station_no }} · {{ decision.verified_obs_date }} · <b>{{ decision.verified_rainfall_mm }}</b> mm</td>
+              <td>甲第 {{ decision.entry_a_revision }} 版 / 乙第 {{ decision.entry_b_revision }} 版</td>
+              <td>
+                {% if decision.voided_at %}
+                  <span class="status status-voided">已失效</span>
+                  <div class="subtle">{{ decision.voided_at|short_dt }} · 录入改填</div>
+                {% else %}
+                  <span class="status status-adjudicated">有效</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}历史雨量档案{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('index') }}">
+      <span class="brand-mark">雨</span>
+      <span>
+        <strong>历史雨量档案</strong>
+        <small>双录 · 复核 · 入库</small>
+      </span>
+    </a>
+    {% if current_user %}
+      <nav class="nav">
+        {% if current_user.role == 'clerk' %}
+          <a href="{{ url_for('clerk_dashboard') }}">我的录入</a>
+        {% else %}
+          <a href="{{ url_for('reviewer_dashboard') }}">复核工作台</a>
+          <a href="{{ url_for('export_csv') }}">下载核定 CSV</a>
+        {% endif %}
+        <span class="nav-user">
+          {{ current_user.display_name }}
+          <span class="role-tag">{{ '录入员' if current_user.role == 'clerk' else '复核员' }}</span>
+        </span>
+        <form method="post" action="{{ url_for('logout') }}" class="inline-form">
+          <button type="submit" class="link-button">退出</button>
+        </form>
+      </nav>
+    {% endif %}
+  </header>
+
+  <main class="page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack" role="status">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <span>历史观测库 · 日雨量卡片入库</span>
+    <span>两份独立录入，原图复核，改填即重新核对</span>
+  </footer>
+</body>
+</html>

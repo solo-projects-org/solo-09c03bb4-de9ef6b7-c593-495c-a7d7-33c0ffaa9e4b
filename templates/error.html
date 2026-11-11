@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · 历史雨量档案{% endblock %}
+{% block content %}
+<div class="empty-state error-state">
+  <p class="eyebrow">ERROR {{ code }}</p>
+  <h1>{{ title }}</h1>
+  <p>{{ message }}</p>
+  <a class="button button-primary" href="{{ url_for('index') }}">回到工作台</a>
+</div>
+{% endblock %}
